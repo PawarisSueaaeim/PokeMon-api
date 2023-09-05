@@ -1,23 +1,34 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import FetchPokemonAll from "./service/FetchPokeAll";
+import "./App.css"
+import CardItem from "./components/CardItem";
 
 function App() {
+  const [pokemonAll, setPokemonAll] = useState([]);
+
+  useEffect(() => {
+    const fetchCharactor = async () => {
+      try {
+        const response = await FetchPokemonAll();
+        setPokemonAll(response.data.results);
+      } catch (error) {
+        console.log("FetchPokemonData error: ", error);
+      }
+    };
+    fetchCharactor();
+  }, []);
+
+  console.log(pokemonAll);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="App container mt-5">
+      <div className="style-container">
+        {pokemonAll.map((pokemon, index) => {
+          return (
+            <CardItem key={`${pokemon.name}-${index}`} name={pokemon.name} url={pokemon.url}/>
+          );
+        })}
+      </div>
     </div>
   );
 }
