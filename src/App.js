@@ -1,14 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
-import FetchPokemonAll from "./service/FetchPokeAll";
-import "./App.css";
-import CardItem from "./components/CardItem";
 import { Pagination, CircularProgress } from "@mui/material";
+
+import "./App.css";
+import FetchPokemonAll from "./service/FetchPokeAll";
+import CardItem from "./components/CardItem";
+import CardItemModal from "./components/CardItemModal";
+
+const setPokeContext = React.createContext();
 
 function App() {
   const [pokemonAll, setPokemonAll] = useState([]);
-  const [pageUrl, setPageUrl] = useState({});
   const [loading, setLoading] = useState(true);
+  const [isOpenModal, setIsOpenModal ] = useState(false);
 
   const [page, setPage] = useState(1);
 
@@ -17,7 +21,6 @@ function App() {
       setLoading(true);
       const response = await FetchPokemonAll();
       setPokemonAll(response.data.results);
-      setPageUrl(response.data);
     } catch (error) {
       console.log("FetchPokemonData error: ", error);
     } finally {
@@ -31,11 +34,12 @@ function App() {
       let offset = 0;
       let limit = 20;
       for (let i = 1; i < value; i++) {
-        offset+=20
+        offset += 20;
       }
-      const response = await axios.get(`https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`)
+      const response = await axios.get(
+        `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`
+      );
       setPokemonAll(response.data.results);
-      setPageUrl(response.data);
       setPage(value);
     } catch (error) {
       console.log("FetchPokemonData error: ", error);
@@ -49,33 +53,33 @@ function App() {
   }, []);
 
   return (
-    <div className="App container mt-5">
-      {loading ? (
-        <div className="loading-container">
-          <CircularProgress />
-        </div>
-      ) : (
-        <>
-          <div className="style-container">
-            {pokemonAll.map((pokemon, index) => (
-              <CardItem
-                key={`${pokemon.name}-${index}`}
-                name={pokemon.name}
-                url={pokemon.url}
-              />
-            ))}
+    <setPokeContext.Provider value={pokemonAll}>
+      <div className="App container mt-5">
+        {loading ? (
+          <div className="loading-container">
+            <CircularProgress />
           </div>
-          <div className="pagination">
-            <Pagination
-              count={Math.ceil(pageUrl.count / pageUrl.results.length)}
-              onChange={handleChange}
-              page={page}
-            />
-          </div>
-        </>
-      )}
-    </div>
+        ) : (
+          <>
+            <div className="style-container">
+              {pokemonAll.map((pokemon, index) => (
+                <CardItem
+                  key={`${pokemon.name}-${index}`}
+                  name={pokemon.name}
+                  url={pokemon.url}
+                />
+              ))}
+            </div>
+            <div className="pagination">
+              <Pagination count={10} onChange={handleChange} page={page} />
+            </div>
+          </>
+        )}
+      </div>
+      <CardItemModal open={true}/>
+    </setPokeContext.Provider>
   );
 }
 
+export { setPokeContext };
 export default App;
